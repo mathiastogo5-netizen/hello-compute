@@ -1,0 +1,37 @@
+// Fonction pour générer un code aléatoire
+function generateCode() {
+  return Math.floor(100000 + Math.random() * 900000); // code à 6 chiffres
+}
+
+// Fonction pour valider un achat côté client
+function validatePurchase(clientRow, sheetName = "Clients") {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  var code = generateCode();
+  sheet.getRange(clientRow, 6).setValue(code); // colonne 6 = Code de confirmation
+  SpreadsheetApp.flush();
+  // Notification par email (optionnel)
+  var clientEmail = sheet.getRange(clientRow, 3).getValue(); // colonne 3 = Contact
+  MailApp.sendEmail(clientEmail, "Code de confirmation SUGOO", "Votre code est : " + code);
+}
+
+// Fonction pour valider le code client et libérer la commande
+function confirmClientCode(clientRow, enteredCode, sheetName = "Clients", ordersSheetName = "Commandes") {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  var storedCode = sheet.getRange(clientRow, 6).getValue();
+  if (enteredCode == storedCode) {
+    // Marquer la commande comme validée
+    var orderSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ordersSheetName);
+    orderSheet.getRange(clientRow, 6).setValue("Validée"); // colonne 6 = Statut
+    return "Commande confirmée";
+  } else {
+    return "Code incorrect";
+  }
+}
+
+// Fonction pour assigner un code au livreur à la demande
+function assignDeliveryCode(orderRow, sheetName = "Commandes") {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  var code = generateCode();
+  sheet.getRange(orderRow, 7).setValue(code); // colonne 7 = Code livreur
+  SpreadsheetApp.flush();
+  // Ici on pourrait envoyer notification au livreur
